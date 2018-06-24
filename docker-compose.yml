@@ -57,3 +57,5 @@ services:
     environment:
       - ENVOY_XDS_HOST=rotor
       - ENVOY_XDS_PORT=50000
+    ports:
+      - 9999:9999
