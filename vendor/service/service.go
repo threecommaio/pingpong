@@ -42,6 +42,7 @@ func New(name string, address string, port int, tags []string) (*Service, error)
 			HTTP:     fmt.Sprintf("http://%s:%d/health", s.Address, s.Port),
 			Interval: "5s",
 			Timeout:  "5s",
+			DeregisterCriticalServiceAfter: "1m",
 		},
 	}
 	if err := s.ConsulAgent.ServiceRegister(serviceDef); err != nil {
