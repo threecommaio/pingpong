@@ -7,12 +7,19 @@ services:
       - ./prom.yml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+
   pingpong:
     build: .
     environment:
       - CONSUL_HTTP_ADDR=http://consul-agent-1:8500
     ports:
       - 9000:8080
+
+  slow_cooker_01: &slow-cooker
+    image: buoyantio/slow_cooker:latest
+    entrypoint: /bin/sh
+    command: >
+      -c 'slow_cooker -qps 500 -concurrency 10 -interval 5s http://pingpong:8080/pong'
 
   consul-agent-1: &consul-agent
     image: consul:latest
