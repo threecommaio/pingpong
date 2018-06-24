@@ -1,9 +1,7 @@
 package service
 
 import (
-	"log"
-	"net"
-	"time"
+	"fmt"
 
 	consul "github.com/hashicorp/consul/api"
 )
@@ -11,56 +9,39 @@ import (
 // Service struct handling consul
 type Service struct {
 	Name        string
-	TTL         time.Duration
+	Address     string
 	Port        int
 	ConsulAgent *consul.Agent
 }
 
-// UpdateTTL updates consul checks
-func (s *Service) UpdateTTL() {
-	ticker := time.NewTicker(s.TTL / 2)
-	for range ticker.C {
-		if agentErr := s.ConsulAgent.PassTTL("service:"+s.Name, ""); agentErr != nil {
-			log.Print(agentErr)
-		}
-	}
-}
+func (s *Service) Check() {
 
-// GetLocalIP returns the local ip address
-func GetLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
 }
 
 // New func handling setup of consul
-func New(name string, port int, ttl time.Duration) (*Service, error) {
+func New(name string, address string, port int, tags []string) (*Service, error) {
 	s := new(Service)
 	s.Name = name
-	s.TTL = ttl
 	s.Port = port
+	s.Address = address
 
 	c, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {
 		return nil, err
 	}
 	s.ConsulAgent = c.Agent()
+	serviceID := s.Name + "-" + s.Address
+
 	serviceDef := &consul.AgentServiceRegistration{
+		ID:      serviceID,
 		Name:    s.Name,
 		Port:    s.Port,
-		Address: GetLocalIP(),
+		Address: s.Address,
+		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
-			TTL: s.TTL.String(),
+			HTTP:     fmt.Sprintf("http://%s:%d/health", s.Address, s.Port),
+			Interval: "5s",
+			Timeout:  "5s",
 		},
 	}
 	if err := s.ConsulAgent.ServiceRegister(serviceDef); err != nil {
