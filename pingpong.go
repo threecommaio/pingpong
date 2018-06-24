@@ -37,7 +37,7 @@ func consulRegistration(name string, port int, ttl time.Duration) {
 func main() {
 
 	port := flag.Int("port", 8080, "service port to run on")
-	consul := flag.Bool("consul", false, "enable consult support (default: false)")
+	consul := flag.Bool("consul", false, "enable consul support (default: false)")
 	ttl := flag.Duration("ttl", time.Second*15, "service ttl check duration")
 	flag.Parse()
 
