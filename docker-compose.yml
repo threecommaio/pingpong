@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  prom:
+    image: prom/prometheus
+    volumes:
+      - ./prom.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+  pingpong:
+    build: .
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul-agent-1:8500
+    ports:
+      - 9000:8080
+
+  consul-agent-1: &consul-agent
+    image: consul:latest
+    command: "agent -retry-join consul-server-bootstrap -client 0.0.0.0"
+
+  consul-server-1: &consul-server
+    <<: *consul-agent
+    command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0"
+
+  consul-server-bootstrap:
+    <<: *consul-agent
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:8600"
+      - "8600:8600/udp"
+    command: "agent -server -bootstrap-expect 1 -ui -client 0.0.0.0"
