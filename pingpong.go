@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"service"
+	"github.com/threecommaio/pingpong/service"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
