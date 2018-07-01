@@ -1,4 +1,4 @@
-package service
+package main
 
 import (
 	"fmt"
@@ -11,23 +11,15 @@ type Service struct {
 	Name        string
 	Address     string
 	Port        int
+	Tags        []string
 	ConsulAgent *consul.Agent
 }
 
-func (s *Service) Check() {
-
-}
-
-// New func handling setup of consul
-func New(name string, address string, port int, tags []string) (*Service, error) {
-	s := new(Service)
-	s.Name = name
-	s.Port = port
-	s.Address = address
-
+// Register a new service in consul
+func (s *Service) Register() error {
 	c, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	s.ConsulAgent = c.Agent()
 	serviceID := s.Name + "-" + s.Address
@@ -37,7 +29,7 @@ func New(name string, address string, port int, tags []string) (*Service, error)
 		Name:    s.Name,
 		Port:    s.Port,
 		Address: s.Address,
-		Tags:    tags,
+		Tags:    s.Tags,
 		Check: &consul.AgentServiceCheck{
 			HTTP:     fmt.Sprintf("http://%s:%d/health", s.Address, s.Port),
 			Interval: "5s",
@@ -46,8 +38,17 @@ func New(name string, address string, port int, tags []string) (*Service, error)
 		},
 	}
 	if err := s.ConsulAgent.ServiceRegister(serviceDef); err != nil {
-		return nil, err
+		return err
 	}
 
-	return s, nil
+	return nil
+}
+
+// New func handling setup of consul
+func (s *Service) New(name string, address string, port int, tags []string) *Service {
+	s.Name = name
+	s.Port = port
+	s.Address = address
+
+	return s
 }
