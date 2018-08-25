@@ -1,11 +1,12 @@
-FROM golang:latest as builder
-COPY . /go/src/app
-WORKDIR /go/src/app
+FROM golang:1.11rc2 as builder
+WORKDIR /src
 
-RUN go get -d -v
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app
 
 FROM alpine:latest
-# Copy our static executable
-COPY --from=builder /go/src/app/pingpong /go/bin/app
+COPY --from=builder /src/app /go/bin/app
 ENTRYPOINT ["/go/bin/app"]
