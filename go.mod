@@ -3,7 +3,7 @@ module github.com/threecommaio/pingpong
 go 1.18
 
 require (
-	github.com/hashicorp/consul/api v1.11.0
+	github.com/hashicorp/consul/api v1.12.0
 	github.com/prometheus/client_golang v1.12.1
 )
 
